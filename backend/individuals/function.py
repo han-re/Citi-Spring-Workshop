@@ -8,6 +8,14 @@ from bson import ObjectId
 
 JWT_SECRET = os.environ.get("JWT_SECRET", "workshop-secret-key")
 
+#ROLE PERMISSIONS - DEFINES ALLOWED HTTP METHODS PER ROLE
+ROLE_PERMISSIONS = {
+    "admin":       {"GET", "POST", "PUT", "DELETE"},
+    "manager":     {"GET", "POST", "PUT"},
+    "contributor": {"GET", "POST"},
+    "viewer":      {"GET"},
+}
+
 #DB CONNECTION FUNC
 def get_db():
     host = os.environ.get("MONGO_HOST", "host.docker.internal")
@@ -58,9 +66,9 @@ def handler(event=None, context=None):
     role, err = verify_token(event)
     if err:
         return err
-    #VIEWERS CAN ONLY READ - BLOCK ALL MUTATIONS
-    if method in ("POST", "PUT", "DELETE") and role != "admin":
-        return {"statusCode": 403, "body": json.dumps({"error": "Admin access required"})}
+    #RBAC - CHECK ROLE HAS PERMISSION FOR THIS HTTP METHOD
+    if method not in ROLE_PERMISSIONS.get(role, set()):
+        return {"statusCode": 403, "body": json.dumps({"error": "Insufficient permissions"})}
 
     #LIST ALL INDIVIDUALS - SUPPORTS SEARCH, LOCATION AND EMPLOYMENT TYPE FILTERS
     if method == "GET" and path == "/individuals":

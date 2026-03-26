@@ -61,7 +61,7 @@ export default function App() {
             <div style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 11, color: '#6b7280', letterSpacing: '0.15em', textTransform: 'uppercase' }}>
               {username}
             </div>
-            <div style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 10, letterSpacing: '0.2em', textTransform: 'uppercase', marginTop: 2, color: role === 'admin' ? '#00ff88' : '#6b7280', textShadow: role === 'admin' ? '0 0 6px #00ff88' : 'none' }}>
+            <div style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 10, letterSpacing: '0.2em', textTransform: 'uppercase', marginTop: 2, color: { admin: '#00ff88', manager: '#00d4ff', contributor: '#ffaa00', viewer: '#6b7280' }[role] || '#6b7280', textShadow: role === 'admin' ? '0 0 6px #00ff88' : 'none' }}>
               [{role}]
             </div>
           </div>
@@ -71,10 +71,20 @@ export default function App() {
         </div>
       </div>
 
-      {/* VIEWER NOTICE - SHOWS ONLY WHEN NOT AN ADMIN */}
-      {role !== 'admin' && (
+      {/* ROLE NOTICE - SHOWS FOR NON-ADMIN ROLES */}
+      {role === 'viewer' && (
         <div style={{ border: '1px solid #ff00ff', background: 'rgba(255,0,255,0.05)', padding: '8px 14px', marginBottom: 16, fontFamily: 'JetBrains Mono, monospace', fontSize: 12, color: '#ff00ff', letterSpacing: '0.1em', clipPath: 'polygon(0 5px, 5px 0, calc(100% - 5px) 0, 100% 5px, 100% calc(100% - 5px), calc(100% - 5px) 100%, 5px 100%, 0 calc(100% - 5px))', boxShadow: '0 0 8px #ff00ff40' }}>
           ⚠ VIEWER MODE — READ ACCESS ONLY
+        </div>
+      )}
+      {role === 'contributor' && (
+        <div style={{ border: '1px solid #ffaa00', background: 'rgba(255,170,0,0.05)', padding: '8px 14px', marginBottom: 16, fontFamily: 'JetBrains Mono, monospace', fontSize: 12, color: '#ffaa00', letterSpacing: '0.1em', clipPath: 'polygon(0 5px, 5px 0, calc(100% - 5px) 0, 100% 5px, 100% calc(100% - 5px), calc(100% - 5px) 100%, 5px 100%, 0 calc(100% - 5px))', boxShadow: '0 0 8px #ffaa0040' }}>
+          ◈ CONTRIBUTOR MODE — CREATE ACCESS ONLY
+        </div>
+      )}
+      {role === 'manager' && (
+        <div style={{ border: '1px solid #00d4ff', background: 'rgba(0,212,255,0.05)', padding: '8px 14px', marginBottom: 16, fontFamily: 'JetBrains Mono, monospace', fontSize: 12, color: '#00d4ff', letterSpacing: '0.1em', clipPath: 'polygon(0 5px, 5px 0, calc(100% - 5px) 0, 100% 5px, 100% calc(100% - 5px), calc(100% - 5px) 100%, 5px 100%, 0 calc(100% - 5px))', boxShadow: '0 0 8px #00d4ff40' }}>
+          ◈ MANAGER MODE — CREATE AND EDIT ACCESS
         </div>
       )}
 

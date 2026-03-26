@@ -3,6 +3,9 @@ import { teamsApi, individualsApi } from '../services/api';
 import { useToast, ToastContainer } from '../components/Toast';
 
 export default function Teams({ role }) {
+const canCreate = ['admin', 'manager', 'contributor'].includes(role);
+const canEdit   = ['admin', 'manager'].includes(role);
+const canDelete = role === 'admin';
 const [teams, setTeams]             = useState([]);
 const [individuals, setIndividuals] = useState([]);
 const [form, setForm]               = useState({ name: '', location: '', leader_id: '', members: [] });
@@ -73,7 +76,7 @@ return (
     <ToastContainer toasts={toasts} />
     <h2 style={pageHeading}>Teams</h2>
 
-    {role === 'admin' && <form onSubmit={handleSubmit} style={{ marginBottom: 24, background: '#12121a', border: '1px solid #2a2a3a', padding: 16, clipPath: 'polygon(0 8px, 8px 0, calc(100% - 8px) 0, 100% 8px, 100% calc(100% - 8px), calc(100% - 8px) 100%, 8px 100%, 0 calc(100% - 8px))' }}>
+    {canCreate && <form onSubmit={handleSubmit} style={{ marginBottom: 24, background: '#12121a', border: '1px solid #2a2a3a', padding: 16, clipPath: 'polygon(0 8px, 8px 0, calc(100% - 8px) 0, 100% 8px, 100% calc(100% - 8px), calc(100% - 8px) 100%, 8px 100%, 0 calc(100% - 8px))' }}>
         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 12 }}>
         <input placeholder="> team name *" value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} style={{ ...inp, flex: 1 }} />
         <input placeholder="> location" value={form.location} onChange={e => setForm({ ...form, location: e.target.value })} style={{ ...inp, flex: 1 }} />
@@ -120,12 +123,12 @@ return (
             <th style={th}>Leader</th>
             <th style={th}>Members</th>
             <th style={th}>Created</th>
-            {role === 'admin' && <th style={th}>Actions</th>}
+            {canEdit && <th style={th}>Actions</th>}
             </tr>
         </thead>
         <tbody>
             {teams.length === 0 && (
-            <tr><td colSpan={role === 'admin' ? 6 : 5} style={{ ...td, textAlign: 'center', color: '#6b7280' }}>// NO TEAMS FOUND</td></tr>
+            <tr><td colSpan={canEdit ? 6 : 5} style={{ ...td, textAlign: 'center', color: '#6b7280' }}>// NO TEAMS FOUND</td></tr>
             )}
             {teams.map(t => (
             <tr key={t._id}>
@@ -134,10 +137,10 @@ return (
                 <td style={{ ...td, color: '#00ff88' }}>{getName(t.leader_id)}</td>
                 <td style={{ ...td, color: '#00d4ff', fontSize: 11 }}>{(t.members || []).map(m => getName(m)).join(', ') || '—'}</td>
                 <td style={{ ...td, color: '#6b7280' }}>{t.created_at ? new Date(t.created_at).toLocaleDateString() : '—'}</td>
-                {role === 'admin' && (
+                {canEdit && (
                 <td style={td}>
-                  <button onClick={() => handleEdit(t)} style={{ ...btnEdit, marginRight: 8 }}>edit</button>
-                  <button onClick={() => handleDelete(t._id)} style={btnDanger}>del</button>
+                  {canEdit && <button onClick={() => handleEdit(t)} style={{ ...btnEdit, marginRight: 8 }}>edit</button>}
+                  {canDelete && <button onClick={() => handleDelete(t._id)} style={btnDanger}>del</button>}
                 </td>
                 )}
             </tr>

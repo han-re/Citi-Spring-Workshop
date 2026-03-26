@@ -3,10 +3,12 @@ import os
 import jwt
 from datetime import datetime, timezone, timedelta
 
-#HARDCODED USERS - ROLE: admin (full CRUD) OR viewer (read-only)
+#HARDCODED USERS - 4 ROLES: admin > manager > contributor > viewer
 USERS = {
-    "admin":  {"password": "admin123",  "role": "admin"},   # nosec B105
-    "viewer": {"password": "viewer123", "role": "viewer"},  # nosec B105
+    "admin":       {"password": "admin123",       "role": "admin"},       # nosec B105
+    "manager":     {"password": "manager123",     "role": "manager"},     # nosec B105
+    "contributor": {"password": "contributor123", "role": "contributor"}, # nosec B105
+    "viewer":      {"password": "viewer123",      "role": "viewer"},      # nosec B105
 }
 
 JWT_SECRET = os.environ.get("JWT_SECRET", "workshop-secret-key")

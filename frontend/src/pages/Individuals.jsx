@@ -5,6 +5,9 @@ import { useToast, ToastContainer } from '../components/Toast';
 const EMPLOYMENT_TYPES = ['full-time', 'part-time', 'contractor'];
 
 export default function Individuals({ role }) {
+const canCreate = ['admin', 'manager', 'contributor'].includes(role);
+const canEdit   = ['admin', 'manager'].includes(role);
+const canDelete = canCreate;
 const [individuals, setIndividuals] = useState([]);
 const [form, setForm]               = useState({ name: '', location: '', employment_type: 'full-time' });
 const [editId, setEditId]           = useState(null);
@@ -70,7 +73,7 @@ return (
     <ToastContainer toasts={toasts} />
     <h2 style={pageHeading}>Individuals</h2>
 
-    {role === 'admin' && <form onSubmit={handleSubmit} style={{ display: 'flex', gap: 8, marginBottom: 16, flexWrap: 'wrap' }}>
+    {canCreate && <form onSubmit={handleSubmit} style={{ display: 'flex', gap: 8, marginBottom: 16, flexWrap: 'wrap' }}>
         <input placeholder="> name *" value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} style={{ ...inp, flex: 1 }} />
         <input placeholder="> location *" value={form.location} onChange={e => setForm({ ...form, location: e.target.value })} style={{ ...inp, flex: 1 }} />
         <select value={form.employment_type} onChange={e => setForm({ ...form, employment_type: e.target.value })} style={sel}>
@@ -109,12 +112,12 @@ return (
             <th style={th}>Location</th>
             <th style={th}>Type</th>
             <th style={th}>Created</th>
-            {role === 'admin' && <th style={th}>Actions</th>}
+            {canEdit && <th style={th}>Actions</th>}
             </tr>
         </thead>
         <tbody>
             {individuals.length === 0 && (
-            <tr><td colSpan={role === 'admin' ? 5 : 4} style={{ ...td, textAlign: 'center', color: '#6b7280' }}>// NO RECORDS FOUND</td></tr>
+            <tr><td colSpan={canEdit ? 5 : 4} style={{ ...td, textAlign: 'center', color: '#6b7280' }}>// NO RECORDS FOUND</td></tr>
             )}
             {individuals.map(ind => (
             <tr key={ind._id}>
@@ -122,10 +125,10 @@ return (
                 <td style={td}>{ind.location}</td>
                 <td style={{ ...td, color: '#00d4ff' }}>{ind.employment_type}</td>
                 <td style={{ ...td, color: '#6b7280' }}>{ind.created_at ? new Date(ind.created_at).toLocaleDateString() : '—'}</td>
-                {role === 'admin' && (
+                {canEdit && (
                 <td style={td}>
-                  <button onClick={() => handleEdit(ind)} style={{ ...btnEdit, marginRight: 8 }}>edit</button>
-                  <button onClick={() => handleDelete(ind._id)} style={btnDanger}>del</button>
+                  {canEdit && <button onClick={() => handleEdit(ind)} style={{ ...btnEdit, marginRight: 8 }}>edit</button>}
+                  {canDelete && <button onClick={() => handleDelete(ind._id)} style={btnDanger}>del</button>}
                 </td>
                 )}
             </tr>

@@ -3,6 +3,9 @@ import { achievementsApi, teamsApi } from '../services/api';
 import { useToast, ToastContainer } from '../components/Toast';
 
 export default function Achievements({ role }) {
+const canCreate = ['admin', 'manager', 'contributor'].includes(role);
+const canEdit   = ['admin', 'manager'].includes(role);
+const canDelete = role === 'admin';
 const [achievements, setAchievements] = useState([]);
 const [teams, setTeams]               = useState([]);
 const [form, setForm]                 = useState({ team_id: '', month: '', description: '', metrics: '' });
@@ -75,7 +78,7 @@ return (
     <ToastContainer toasts={toasts} />
     <h2 style={pageHeading}>Achievements</h2>
 
-    {role === 'admin' && <form onSubmit={handleSubmit} style={{ marginBottom: 24, background: '#12121a', border: '1px solid #2a2a3a', padding: 16, clipPath: 'polygon(0 8px, 8px 0, calc(100% - 8px) 0, 100% 8px, 100% calc(100% - 8px), calc(100% - 8px) 100%, 8px 100%, 0 calc(100% - 8px))' }}>
+    {canCreate && <form onSubmit={handleSubmit} style={{ marginBottom: 24, background: '#12121a', border: '1px solid #2a2a3a', padding: 16, clipPath: 'polygon(0 8px, 8px 0, calc(100% - 8px) 0, 100% 8px, 100% calc(100% - 8px), calc(100% - 8px) 100%, 8px 100%, 0 calc(100% - 8px))' }}>
         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 8 }}>
         {/* TEAM SELECTOR */}
         <select value={form.team_id} onChange={e => setForm({ ...form, team_id: e.target.value })} style={{ ...sel, flex: 1 }}>
@@ -121,12 +124,12 @@ return (
             <th style={th}>Description</th>
             <th style={th}>Metrics</th>
             <th style={th}>Created</th>
-            {role === 'admin' && <th style={th}>Actions</th>}
+            {canEdit && <th style={th}>Actions</th>}
             </tr>
         </thead>
         <tbody>
             {achievements.length === 0 && (
-            <tr><td colSpan={role === 'admin' ? 6 : 5} style={{ ...td, textAlign: 'center', color: '#6b7280' }}>// NO ACHIEVEMENTS FOUND</td></tr>
+            <tr><td colSpan={canEdit ? 6 : 5} style={{ ...td, textAlign: 'center', color: '#6b7280' }}>// NO ACHIEVEMENTS FOUND</td></tr>
             )}
             {achievements.map(a => (
             <tr key={a._id}>
@@ -135,10 +138,10 @@ return (
                 <td style={td}>{a.description}</td>
                 <td style={{ ...td, color: '#6b7280' }}>{a.metrics || '—'}</td>
                 <td style={{ ...td, color: '#6b7280' }}>{a.created_at ? new Date(a.created_at).toLocaleDateString() : '—'}</td>
-                {role === 'admin' && (
+                {canEdit && (
                 <td style={td}>
-                  <button onClick={() => handleEdit(a)} style={{ ...btnEdit, marginRight: 8 }}>edit</button>
-                  <button onClick={() => handleDelete(a._id)} style={btnDanger}>del</button>
+                  {canEdit && <button onClick={() => handleEdit(a)} style={{ ...btnEdit, marginRight: 8 }}>edit</button>}
+                  {canDelete && <button onClick={() => handleDelete(a._id)} style={btnDanger}>del</button>}
                 </td>
                 )}
             </tr>

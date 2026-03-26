@@ -6,6 +6,9 @@ import { useToast, ToastContainer } from '../components/Toast';
 const CATEGORIES = ['individual', 'team', 'organisation'];
 
 export default function Metadata({ role }) {
+const canCreate = ['admin', 'manager', 'contributor'].includes(role);
+const canEdit   = ['admin', 'manager'].includes(role);
+const canDelete = role === 'admin';
 const [grouped, setGrouped] = useState({});
 const [form, setForm]       = useState({ category: '', key: '', value: '' });
 const [editId, setEditId]   = useState(null);
@@ -65,7 +68,7 @@ return (
         // reference data by category — e.g. category=<span style={{ color: '#00d4ff' }}>individual</span>, key=<span style={{ color: '#00d4ff' }}>employment_type</span>, value=<span style={{ color: '#00d4ff' }}>contractor</span>
     </p>
 
-    {role === 'admin' && <form onSubmit={handleSubmit} style={{ display: 'flex', gap: 8, marginBottom: 24, flexWrap: 'wrap' }}>
+    {canCreate && <form onSubmit={handleSubmit} style={{ display: 'flex', gap: 8, marginBottom: 24, flexWrap: 'wrap' }}>
         {/* CATEGORY - DROPDOWN WITH SPEC-DEFINED OPTIONS */}
         <select value={form.category} onChange={e => setForm({ ...form, category: e.target.value })} style={sel}>
         <option value="">select category *</option>
@@ -100,7 +103,7 @@ return (
                     <th style={th}>Key</th>
                     <th style={th}>Value</th>
                     <th style={th}>Created</th>
-                    {role === 'admin' && <th style={th}>Actions</th>}
+                    {canEdit && <th style={th}>Actions</th>}
                 </tr>
                 </thead>
                 <tbody>
@@ -109,10 +112,10 @@ return (
                     <td style={{ ...td, color: '#00d4ff' }}>{item.key}</td>
                     <td style={td}>{item.value}</td>
                     <td style={{ ...td, color: '#6b7280' }}>{item.created_at ? new Date(item.created_at).toLocaleDateString() : '—'}</td>
-                    {role === 'admin' && (
+                    {canEdit && (
                     <td style={td}>
-                      <button onClick={() => handleEdit(item)} style={{ ...btnEdit, marginRight: 8 }}>edit</button>
-                      <button onClick={() => handleDelete(item._id)} style={btnDanger}>del</button>
+                      {canEdit && <button onClick={() => handleEdit(item)} style={{ ...btnEdit, marginRight: 8 }}>edit</button>}
+                      {canDelete && <button onClick={() => handleDelete(item._id)} style={btnDanger}>del</button>}
                     </td>
                     )}
                     </tr>

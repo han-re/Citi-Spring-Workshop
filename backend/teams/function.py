@@ -48,6 +48,9 @@ def verify_token(event):
 def handler(event=None, context=None):
     method = event["requestContext"]["http"]["method"]
     path   = event["rawPath"]
+    #STRIP /api PREFIX ADDED BY CLOUDFRONT IN PRODUCTION (proxy handles this locally)
+    if path.startswith("/api/"):
+        path = path[4:]
     db     = get_db()
     teams       = db["teams"]
     individuals = db["individuals"] #NEEDED FOR LEADER + MEMBER VALIDATION

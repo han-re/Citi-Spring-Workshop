@@ -15,6 +15,9 @@ JWT_SECRET = os.environ.get("JWT_SECRET", "workshop-secret-key")
 def handler(event=None, context=None):
     method = event["requestContext"]["http"]["method"]
     path   = event["rawPath"]
+    #STRIP /api PREFIX ADDED BY CLOUDFRONT IN PRODUCTION (proxy handles this locally)
+    if path.startswith("/api/"):
+        path = path[4:]
 
     #LOGIN ENDPOINT - POST /auth/login
     if method == "POST" and path == "/auth/login":

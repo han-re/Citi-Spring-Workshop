@@ -48,6 +48,9 @@ def verify_token(event):
 def handler(event=None, context=None):
     method = event["requestContext"]["http"]["method"]
     path   = event["rawPath"]
+    #STRIP /api PREFIX ADDED BY CLOUDFRONT IN PRODUCTION (proxy handles this locally)
+    if path.startswith("/api/"):
+        path = path[4:]
     params = event.get("queryStringParameters") or {}
     col    = get_db()
 

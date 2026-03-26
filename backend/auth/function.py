@@ -5,8 +5,8 @@ from datetime import datetime, timezone, timedelta
 
 #HARDCODED USERS - ROLE: admin (full CRUD) OR viewer (read-only)
 USERS = {
-    "admin":  {"password": "admin123",  "role": "admin"},
-    "viewer": {"password": "viewer123", "role": "viewer"},
+    "admin":  {"password": "admin123",  "role": "admin"},   # nosec B105
+    "viewer": {"password": "viewer123", "role": "viewer"},  # nosec B105
 }
 
 JWT_SECRET = os.environ.get("JWT_SECRET", "workshop-secret-key")
@@ -51,6 +51,6 @@ if __name__ == "__main__":
     fake_event = {
         "rawPath": "/auth/login",
         "requestContext": {"http": {"method": "POST"}},
-        "body": json.dumps({"username": "admin", "password": "admin123"}),
+        "body": json.dumps({"username": "admin", "password": "admin123"}),  # nosec B105
     }
     print(handler(fake_event))

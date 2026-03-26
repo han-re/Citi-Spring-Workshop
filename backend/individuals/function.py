@@ -123,6 +123,10 @@ def handler(event=None, context=None):
         res = col.delete_one({"_id": ObjectId(id_)})
         if res.deleted_count == 0:
             return {"statusCode": 404, "body": json.dumps({"error": "Not found"})}
+        #CLEAN UP TEAM REFERENCES - REMOVE FROM MEMBERS ARRAY AND CLEAR LEADER IF MATCHED
+        teams = col.database["teams"]
+        teams.update_many({"members": id_}, {"$pull": {"members": id_}})
+        teams.update_many({"leader_id": id_}, {"$set": {"leader_id": ""}})
         return {"statusCode": 204, "body": ""}
 
     return {"statusCode": 400, "body": json.dumps({"error": "Bad request"})}

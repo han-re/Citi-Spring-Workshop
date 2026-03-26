@@ -240,7 +240,7 @@ export AWS_SECRET_ACCESS_KEY=test
 
 # Detect MongoDB host for LocalStack Lambda functions
 if [[ "$OSTYPE" == "linux-gnu"* ]]; then
-    export TF_VAR_mongodb_host="172.17.0.1"
+    export TF_VAR_aws_host="172.17.0.1"
     echo -e "  Detected Linux - using MongoDB host: 172.17.0.1"
 else
     export TF_VAR_mongodb_host="host.docker.internal"
@@ -326,7 +326,7 @@ echo -e "  Generating frontend environment configuration..."
 
 # Restart proxy so it picks up the newly generated .env.local
 if [ -f /tmp/proxy-server.pid ]; then
-    kill "$(cat /tmp/proxy-server.pid)" 2>/dev/null
+    kill "$(cat /tmp/proxy-server.pid)" || echo "no process"
     rm -f /tmp/proxy-server.pid
 elif lsof -iTCP:3001 -sTCP:LISTEN > /dev/null 2>&1; then
     lsof -ti:3001 | xargs kill 2>/dev/null

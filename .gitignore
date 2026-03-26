@@ -255,3 +255,13 @@ tfplan
 
 # Snyk Security Extension - AI Rules (auto-generated)
 .github/instructions/snyk_rules.instructions.md
+
+claude.md
+context1.md
+
+backend/*/pymongo/
+backend/*/bson/
+backend/*/dns/
+backend/*/gridfs/
+backend/*/pymongo-*/
+backend/*/dnspython-*/

@@ -91,10 +91,13 @@ const server = http.createServer((req, res) => {
   delete headers['sec-fetch-dest'];
 
   // Keep only essential headers
+  const extraPath = pathParts.length > 2 ? '/' + pathParts.slice(2).join('/') : '';
+  const queryString = parsedUrl.search || '';
+
   const options = {
     hostname: target.hostname,
     port: target.port,
-    path: target.path,
+    path: target.path.replace(/\/$/, '') + '/' + endpointName + extraPath + queryString,
     method: req.method,
     headers: {
       'accept': headers.accept || 'application/json',

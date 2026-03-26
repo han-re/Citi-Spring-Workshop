@@ -1,14 +1,15 @@
 import { useState } from 'react';
+import Dashboard    from './pages/Dashboard';
 import Individuals  from './pages/Individuals';
 import Teams        from './pages/Teams';
 import Achievements from './pages/Achievements';
 import Metadata     from './pages/Metadata';
 import Login        from './pages/Login';
 
-const PAGES = ['Individuals', 'Teams', 'Achievements', 'Metadata'];
+const PAGES = ['Dashboard', 'Individuals', 'Teams', 'Achievements', 'Metadata'];
 
 export default function App() {
-  const [page, setPage]         = useState('Individuals');
+  const [page, setPage]         = useState('Dashboard');
   // INITIALISE FROM LOCALSTORAGE SO SESSION SURVIVES PAGE REFRESH
   const [role, setRole]         = useState(localStorage.getItem('role') || null);
   const [username, setUsername] = useState(localStorage.getItem('username') || null);
@@ -34,6 +35,7 @@ export default function App() {
   const renderPage = () => {
     // PASS role DOWN SO EACH PAGE CAN SHOW/HIDE EDIT CONTROLS
     switch (page) {
+      case 'Dashboard':    return <Dashboard    role={role} username={username} />;
       case 'Individuals':  return <Individuals  role={role} />;
       case 'Teams':        return <Teams        role={role} />;
       case 'Achievements': return <Achievements role={role} />;

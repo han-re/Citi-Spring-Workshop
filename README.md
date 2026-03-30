@@ -63,7 +63,7 @@ Tests call `handler()` directly against a real local MongoDB instance — no moc
 
 | Layer | Technology |
 |---|---|
-| Frontend | React 18, Vite, inline CSS |
+| Frontend | React 19, Vite, inline CSS |
 | Backend | Python 3, AWS Lambda |
 | Database | MongoDB (local) / AWS DocumentDB (prod) |
 | Auth | PyJWT, HMAC-signed tokens |

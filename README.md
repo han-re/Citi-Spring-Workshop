@@ -1,109 +1,168 @@
-# Coding Workshop
+# ACME Team Management Application
 
-The goal of this coding workshop is to enable and assess the hands-on skills
-of participants through development of a practical technical solution that
-solves a theoretical business problem.
+A full-stack team management web application built during the Citi Spring Week coding workshop. The app solves a real business problem for ACME Inc. — centralising information about teams, individuals, achievements, and metadata that was previously scattered across multiple systems.
 
-## Getting Started
+---
 
-Navigate to [Coding Workshop - Main Guide](./docs/README.md) to get started.
+## What I Built
 
-## Coding Workshop Example
+### Backend — 5 Python Lambda Functions
 
-Coding workshop organizer(s) will provide instructions to follow by email. Here
-below is a real example of requirements and expectations for participant(s):
+Each entity has its own AWS Lambda function written in Python, deployed via Terraform and backed by MongoDB (locally via LocalStack, in production via AWS DocumentDB).
 
-### Requirements: Business Problem
+| Service | Endpoints | Notes |
+|---|---|---|
+| `individuals` | Full CRUD + search/filter | Validates name, location, employment_type |
+| `teams` | Full CRUD | Validates leader_id and members exist in individuals; leader always auto-added to members |
+| `achievements` | Full CRUD + filter by team/month | Validates team_id exists |
+| `metadata` | Full CRUD | Enforces unique (category, key) constraint |
+| `auth` | POST /auth/login | Issues signed JWT; uses Lambda Function URL v2 event format |
 
-Our company ACME Inc. is going through a massive organizational transformation
-to become a more data-driven organization. Information about teams structure
-and performance is currently scattered across multiple systems, making it
-difficult to get a comprehensive view of team dynamics and achievements.
+### Frontend — React + Vite
 
-We are struggling to answer simple questions like:
+Five pages, all using inline CSS with a custom cyberpunk design system (no CSS framework):
 
-* Who are the members of each team?
-* Where are the teams located?
-* What are the key achievements of each team on a monthly basis?
-* How many teams have team leader not co-located with team members?
-* How many teams have team leader as a non-direct staff?
-* How many teams have non-direct staff to employees ratio above 20%?
-* How many teams are reporting to an organization leader?
+- **Dashboard** — live counts for all four entities, RBAC access control matrix showing current user's permissions
+- **Individuals** — full CRUD with search by name and filters for location and employment type
+- **Teams** — full CRUD with member management and leader assignment
+- **Achievements** — full CRUD with filtering by team and month
+- **Metadata** — full CRUD with category/key/value structure
 
-### Requirements: Technical Solution
+### Authentication & RBAC
 
-As part of this transformation, we are looking to build a centralized team
-management tool that will allow us to track team members, team locations,
-monthly team achievements, as well as individual-level and team-level metadata.
-Initial focus is to provide a self-service capability without any integrations
-with other tools such as Employee Directory, Project Tracking, or Performance
-Management.
+JWT-based auth with four roles enforced on both backend and frontend:
 
-The technical solution involves developing a stand-alone web application using
-modern technologies. The application will have the following features:
+| Role | Read | Create | Edit | Delete |
+|---|---|---|---|---|
+| Admin | yes | yes | yes | yes |
+| Manager | yes | yes | yes | no |
+| Contributor | yes | yes | no | no |
+| Viewer | yes | no | no | no |
 
-* User authentication and authorization
-* Role-based access control
-* CRUD operations for individuals, teams, achievements and metadata
-* Search and filter functionality
-* Responsive design for mobile and desktop usage
+The frontend stores `token`, `role`, and `username` in `localStorage`. Every API call attaches `Authorization: Bearer <token>`. A 401 response clears storage and forces re-login.
 
-### Requirements: Technology Stack
+### Backend Tests
 
-The following technologies will be used to build the application:
+9 pytest tests in `backend/individuals/test_function.py` covering:
 
-* Frontend: HTML, CSS, React.js with React Responsive and Material UI Components
-* Backend: Python
-* Database: MongoDB / DocumentDB
-* Infrastructure: Terraform
-* Version Control: Git, GitHub
-* Deployment Mode: Shell Scripts
-* Deployment Target: AWS Serverless (e.g., S3, CloudFront, Lambda, DocumentDB)
+- Create individual (happy path) → 201
+- Get individual by ID → 200
+- Create with missing name → 400
+- Create with missing location → 400
+- Get non-existent ID → 404
+- No token → 401
+- Viewer cannot create → 403
+- Viewer cannot delete → 403
+- Viewer can read → 200
 
-### Expectations: Value-Based Outcomes
+Tests call `handler()` directly against a real local MongoDB instance — no mocking. A session-scoped fixture cleans up all created records after the suite finishes.
 
-By the end of the workshop, participants will have developed a functional
-web application that meets the requirements outlined above. The application
-will be deployed to a cloud environment and accessible via a web browser.
-Participants will also gain hands-on experience with modern web development
-technologies and best practices.
+---
 
-## Contributing
+## Technology Stack
 
-See the [CONTRIBUTING](./CONTRIBUTING.md) resource for more details.
+| Layer | Technology |
+|---|---|
+| Frontend | React 18, Vite, inline CSS |
+| Backend | Python 3, AWS Lambda |
+| Database | MongoDB (local) / AWS DocumentDB (prod) |
+| Auth | PyJWT, HMAC-signed tokens |
+| Infrastructure | Terraform, LocalStack (local dev) |
+| Deployment | AWS Lambda Function URLs, S3, CloudFront |
+| Dev Proxy | Node.js CORS proxy (local only) |
+
+---
+
+## Running Locally
+
+### Prerequisites
+
+- Docker Desktop (running)
+- MongoDB installed locally (`brew install mongodb-community`)
+- LocalStack CLI (`pip3 install localstack`)
+- Terraform Local (`pip3 install terraform-local`)
+- Node.js
+
+### Start everything
+
+```bash
+./bin/start-dev.sh
+```
+
+This starts MongoDB, LocalStack, deploys all Lambda functions via Terraform, starts the dev proxy on `:3001`, and starts the React dev server on `:3000`.
+
+Open [http://localhost:3000](http://localhost:3000). Default credentials: `admin` / `admin123`.
+
+### Install backend dependencies (hot-reload mode)
+
+LocalStack runs Lambdas directly from the filesystem, so dependencies must be installed into each backend directory:
+
+```bash
+pip3 install pymongo PyJWT -t backend/auth/ --break-system-packages
+pip3 install pymongo PyJWT -t backend/individuals/ --break-system-packages
+pip3 install pymongo PyJWT -t backend/teams/ --break-system-packages
+pip3 install pymongo PyJWT -t backend/achievements/ --break-system-packages
+pip3 install pymongo PyJWT -t backend/metadata/ --break-system-packages
+```
+
+### Run backend tests
+
+```bash
+pip3 install pytest pymongo PyJWT --break-system-packages
+cd backend/individuals
+python3 -m pytest test_function.py -v
+```
+
+---
+
+## Deploying to AWS
+
+```bash
+aws configure                   # set up credentials
+./bin/setup-participant.sh
+./bin/deploy-backend.sh
+./bin/deploy-frontend.sh        # prints the CloudFront URL at the end
+```
+
+> Note: AWS DocumentDB is not free-tier eligible (~$50/month). Run `terraform destroy` when not in use.
+
+---
+
+## Architecture
+
+```
+Browser (:3000)
+  → CORS Proxy (:3001)          [local dev only]
+  → Lambda Function URLs        [LocalStack / AWS]
+  → Python handler              [backend/*/function.py]
+  → MongoDB / DocumentDB
+```
+
+In production, the React app talks directly to Lambda Function URLs — no proxy needed.
+
+---
+
+## Project Structure
+
+```
+backend/
+  auth/           # JWT login endpoint
+  individuals/    # Individuals CRUD + tests
+  teams/          # Teams CRUD
+  achievements/   # Achievements CRUD
+  metadata/       # Metadata CRUD
+frontend/
+  src/
+    pages/        # Dashboard, Individuals, Teams, Achievements, Metadata
+    services/     # api.jsx — single API client
+    components/   # Toast notification system
+infra/            # Terraform — Lambda, DocumentDB, S3, CloudFront
+bin/              # start-dev.sh, deploy-backend.sh, deploy-frontend.sh, proxy-server.js
+docs/             # Requirements, implementation spec, testing strategy
+```
+
+---
 
 ## License
 
-This library is licensed under the MIT-0 License.
-See the [LICENSE](./LICENSE) resource for more details.
-
-## Roadmap
-
-See the
-[open issues](https://github.com/eistrati/coding-workshop-participant/issues)
-for a list of proposed roadmap features (and known issues).
-
-## Security
-
-See the
-[Security Issue Notifications](./CONTRIBUTING.md#security-issue-notifications)
-resource for more details.
-
-## Authors
-
-The following people have contributed to this workshop:
-
-* Colin Heilman - [@heilmancs](https://github.com/heilmancs)
-* Eugene Istrati - [@eistrati](https://github.com/eistrati)
-* Isaiah Cornelius Smith - [@corneliusmith](https://github.com/corneliusmith)
-* Juan Arevalo - [@jparevalo27](https://github.com/jparevalo27)
-* Michael Annucci - [@michael-annucci](https://github.com/michael-annucci)
-
-## Feedback
-
-We'd love to hear your feedback! Please:
-
-* ⭐ Star the repository if you find it helpful
-* 🐛 Report issues on GitHub
-* 💡 Suggest improvements
-* 📝 Share your experience
+MIT-0 — see [LICENSE](./LICENSE).

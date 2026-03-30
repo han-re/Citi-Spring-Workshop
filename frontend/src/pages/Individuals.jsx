@@ -23,13 +23,18 @@ useEffect(() => { load(); }, [search, filterLocation, filterEmployment]);
 
 async function load() {
     setLoading(true);
-    const params = {};
-    if (search)           params.search          = search;
-    if (filterLocation)   params.location        = filterLocation;
-    if (filterEmployment) params.employment_type = filterEmployment;
-    const data = await individualsApi.list(params);
-    setIndividuals(Array.isArray(data) ? data : []);
-    setLoading(false);
+    try {
+        const params = {};
+        if (search)           params.search          = search;
+        if (filterLocation)   params.location        = filterLocation;
+        if (filterEmployment) params.employment_type = filterEmployment;
+        const data = await individualsApi.list(params);
+        setIndividuals(Array.isArray(data) ? data : []);
+    } catch (err) {
+        showToast(err.message || 'Failed to load individuals', 'error');
+    } finally {
+        setLoading(false);
+    }
 }
 
 async function handleSubmit(e) {
@@ -55,9 +60,13 @@ async function handleSubmit(e) {
 
 async function handleDelete(id) {
     if (!confirm('Delete this individual?')) return;
-    await individualsApi.remove(id);
-    showToast('Individual deleted');
-    load();
+    try {
+        await individualsApi.remove(id);
+        showToast('Individual deleted');
+        load();
+    } catch (err) {
+        showToast(err.message || 'Delete failed', 'error');
+    }
 }
 
 function handleEdit(ind) {

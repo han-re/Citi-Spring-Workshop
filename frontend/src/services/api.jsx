@@ -24,7 +24,15 @@ async function request(method, path, body = null) {
     return null;
   }
 
-  return res.json();
+  const data = await res.json();
+
+  // THROW ON HTTP ERRORS SO CALLERS CAN CATCH AND SHOW THE REAL ERROR MESSAGE
+  if (!res.ok) {
+    const message = data?.error || `Request failed (${res.status})`;
+    throw new Error(message);
+  }
+
+  return data;
 }
 
 export const authApi = {
